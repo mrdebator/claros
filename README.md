@@ -1,4 +1,4 @@
-# graph-recon
+# Claros
 Author: Ansh Chandnani ([anshc.me](https://anshc.me))
 
 This repository will track the development of an ontology based reconnaissance tool, primarily focussed on aiding penetration testers.
