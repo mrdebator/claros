@@ -2,7 +2,6 @@ import requests
 from datamodels import NVDResponse
 import pandas as pd
 import io
-import socket
 import json
 import urllib
 
