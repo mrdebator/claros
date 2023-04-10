@@ -2,9 +2,12 @@ import requests
 from datamodels import NVDResponse
 import pandas as pd
 import io
+import socket
+import json
+import urllib
 
 # Query NVD for given CVE ID
-def query_cves(cveID: str) -> list:
+def query_cve(cveID: str) -> list:
     """Query CVEs from NVD
 
     Args:
@@ -25,12 +28,12 @@ def query_cves(cveID: str) -> list:
         data = NVDResponse.parse_raw(response.text)
         if data.total_results > 0:
             return [data.dict()]    
-    else:
-        return []
+    
+    return []
 
 
 # Query NVD for given keyword
-def query_keywords(keyword: str) -> list:
+def query_keyword(keyword: str) -> list:
     """Query Keywords from NVD
 
     Args:
@@ -51,8 +54,8 @@ def query_keywords(keyword: str) -> list:
         data = NVDResponse.parse_raw(response.text)
         if data.total_results > 0:
             return [data.dict()]
-    else:
-        return []
+    
+    return []
 
 def query_exploit_db(cveID: str) -> list:
     """Query Exploit DB for given CVE ID
@@ -76,5 +79,27 @@ def query_exploit_db(cveID: str) -> list:
         # Convert filtered DataFrame to list of dictionaries
         results = cve_data.to_dict(orient='records')
         return results
-    else:
-        return []
+    return []
+    
+def query_crt_sh(domain: str) -> dict:
+    """Query crt.sh for given domain
+
+    Args:
+        domain (str): Domain to query
+
+    Returns:
+        dict: Results of the query
+    """    
+    results = {}
+    # Run query
+    with urllib.request.urlopen("https://crt.sh/?q=" + domain + "&output=json") as response:
+        data=json.loads(response.read().decode())
+        for item in data:
+            name_value = item['name_value']
+            try: 
+                ip = socket.gethostbyname(name_value)
+                results['name_value'] = ip
+            except:
+                pass
+            
+    return results
