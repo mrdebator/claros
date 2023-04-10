@@ -55,6 +55,14 @@ def query_keywords(keyword: str) -> list:
         return []
 
 def query_exploit_db(cveID: str) -> list:
+    """Query Exploit DB for given CVE ID
+
+    Args:
+        cveID (str): CVE ID to query
+
+    Returns:
+        list: Results of the query
+    """    
     # Initialize CSV 
     response = requests.get("https://gitlab.com/exploit-database/exploitdb/-/raw/main/files_exploits.csv")
 
