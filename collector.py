@@ -96,10 +96,9 @@ def query_crt_sh(domain: str) -> dict:
         data=json.loads(response.read().decode())
         for item in data:
             name_value = item['name_value']
-            try: 
-                ip = socket.gethostbyname(name_value)
-                results['name_value'] = ip
-            except:
-                pass
+            if name_value not in results:
+                results[name_value] = 1
+            else:
+                results[name_value] += 1
             
     return results
