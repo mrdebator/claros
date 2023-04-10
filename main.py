@@ -23,3 +23,5 @@ if __name__ == "__main__":
 
     if cveID:
         print(collector.query_cves(cveID))
+    if keyword:
+        print(collector.query_keywords(keyword))

@@ -23,7 +23,7 @@ class NVDWeakness(BaseModel):
 class NVDReference(BaseModel):
     url: str = Field(..., alias="url")
     source: str = Field(..., alias="source")
-    tags: List[str] = Field(..., alias="tags")
+    tags: Optional[List[str]] = Field([], alias="tags")
 
 class CVSSMetricBase(BaseModel):
     source: str = Field(..., alias="source")
