@@ -1,5 +1,7 @@
 import requests
 from datamodels import NVDResponse
+import pandas as pd
+import io
 
 # Query NVD for given CVE ID
 def query_cves(cveID: str) -> list:
@@ -29,6 +31,14 @@ def query_cves(cveID: str) -> list:
 
 # Query NVD for given keyword
 def query_keywords(keyword: str) -> list:
+    """Query Keywords from NVD
+
+    Args:
+        keyword (str): Keyword to query
+
+    Returns:
+        list: Results of the query
+    """    
     # Run query
     baseURL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
     keywordFilter = "?keywordSearch="
@@ -44,3 +54,19 @@ def query_keywords(keyword: str) -> list:
     else:
         return []
 
+def query_exploit_db(cveID: str) -> list:
+    # Initialize CSV 
+    response = requests.get("https://gitlab.com/exploit-database/exploitdb/-/raw/main/files_exploits.csv")
+
+    if response.status_code == 200:
+        # Convert contents to DataFrame
+        data = pd.read_csv(io.StringIO(response.content.decode('utf-8')))
+
+        # Filter rows that contain the desired CVE ID
+        cve_data = data[data['codes'].str.contains(cveID, na=False)]
+
+        # Convert filtered DataFrame to list of dictionaries
+        results = cve_data.to_dict(orient='records')
+        return results
+    else:
+        return []

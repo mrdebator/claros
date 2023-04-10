@@ -22,6 +22,7 @@ if __name__ == "__main__":
     results = {}
 
     if cveID:
-        print(collector.query_cves(cveID))
+        # print(collector.query_cves(cveID))
+        print(collector.query_exploit_db(cveID))
     if keyword:
         print(collector.query_keywords(keyword))
