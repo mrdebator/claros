@@ -4,16 +4,17 @@ import pandas as pd
 import io
 import json
 import urllib
+from datetime import datetime
 
 # Query NVD for given CVE ID
-def query_cve(cveID: str) -> list:
+def query_cve(cveID: str) -> NVDResponse:
     """Query CVEs from NVD
 
     Args:
         cveID (str): CVE ID to query
 
     Returns:
-        list: Results of the query
+        NVDResponse: Results of the query
     """    
     # Run query
     baseURL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
@@ -25,14 +26,12 @@ def query_cve(cveID: str) -> list:
     # Parse response
     if response.status_code == 200:
         data = NVDResponse.parse_raw(response.text)
-        if data.total_results > 0:
-            return [data.dict()]    
-    
-    return []
+        return data
 
+    return NVDResponse(resultsPerPage=0, startIndex=0, totalResults=0, format='', version='', timestamp=datetime.now(), vulnerabilities=[])
 
 # Query NVD for given keyword
-def query_keyword(keyword: str) -> list:
+def query_keyword(keyword: str) -> NVDResponse:
     """Query Keywords from NVD
 
     Args:
@@ -52,9 +51,9 @@ def query_keyword(keyword: str) -> list:
     if response.status_code == 200:
         data = NVDResponse.parse_raw(response.text)
         if data.total_results > 0:
-            return [data.dict()]
+            return data
     
-    return []
+    return NVDResponse(resultsPerPage=0, startIndex=0, totalResults=0, format='', version='', timestamp=datetime.now(), vulnerabilities=[])
 
 def query_exploit_db(cveID: str) -> list:
     """Query Exploit DB for given CVE ID
@@ -92,12 +91,12 @@ def query_crt_sh(domain: str) -> dict:
     results = {}
     # Run query
     with urllib.request.urlopen("https://crt.sh/?q=" + domain + "&output=json") as response:
-        data=json.loads(response.read().decode())
-        for item in data:
-            name_value = item['name_value']
-            if name_value not in results:
-                results[name_value] = 1
-            else:
-                results[name_value] += 1
+            data=json.loads(response.read().decode())
+            for item in data:
+                name_value = item['name_value']
+                if name_value not in results:
+                    results[name_value] = 1
+                else:
+                    results[name_value] += 1
             
     return results

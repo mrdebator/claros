@@ -20,13 +20,14 @@ if __name__ == "__main__":
     if not (cveID or keyword or domain):
         print("ERROR: No query arguments provided!")
         exit(1)
-    
-    results = {}
 
     if cveID:
         print(collector.query_cve(cveID))
         print(collector.query_exploit_db(cveID))
     if keyword:
-        print(collector.query_keyword(keyword))
+        response = collector.query_keyword(keyword)
+        for i in range(response.total_results):
+            print(collector.query_exploit_db(response.vulnerabilities[i].data.id))
+
     if domain: 
         print(collector.query_crt_sh(domain))
