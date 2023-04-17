@@ -26,8 +26,11 @@ if __name__ == "__main__":
         print(collector.query_exploit_db(cveID))
     if keyword:
         response = collector.query_keyword(keyword)
+        print(response)
         for i in range(response.total_results):
-            print(collector.query_exploit_db(response.vulnerabilities[i].data.id))
+            exploit_data = collector.query_exploit_db(response.vulnerabilities[i].data.id)
+            if exploit_data != []:
+                print(exploit_data)
 
     if domain: 
         print(collector.query_crt_sh(domain))

@@ -97,3 +97,6 @@ class NVDResponse(BaseModel):
 
     class Config(BaseConfig):
         pass
+
+    def __str__(self) -> str:
+        return f"Total results: {self.total_results}, timestamp: {self.timestamp}"
