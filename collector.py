@@ -38,7 +38,7 @@ def query_keyword(keyword: str) -> NVDResponse:
         keyword (str): Keyword to query
 
     Returns:
-        list: Results of the query
+        NVDResponse: Results of the query
     """    
     # Run query
     baseURL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
@@ -69,7 +69,7 @@ def query_exploit_db(cveID: str) -> list:
 
     if response.status_code == 200:
         # Convert contents to DataFrame
-        data = pd.read_csv(io.StringIO(response.content.decode('utf-8')))
+        data = pd.read_csv(io.StringIO(response.content.decode('utf-8')), usecols= ['id', 'file', 'description', 'date_published', 'author', 'platform', 'type', 'port', 'codes', 'tags', 'source_url'])
 
         # Filter rows that contain the desired CVE ID
         cve_data = data[data['codes'].str.contains(cveID, na=False)]
