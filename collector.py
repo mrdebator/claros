@@ -90,13 +90,15 @@ def query_crt_sh(domain: str) -> dict:
     """    
     results = {}
     # Run query
-    with urllib.request.urlopen("https://crt.sh/?q=" + domain + "&output=json") as response:
-            data=json.loads(response.read().decode())
+    with requests.get("https://crt.sh/?q=" + domain + "&output=json") as response:
+            data=response.json()
             for item in data:
                 name_value = item['name_value']
-                if name_value not in results:
-                    results[name_value] = 1
-                else:
-                    results[name_value] += 1
+                name_value_list = name_value.split('\n')
+                for name in name_value_list:
+                    if name not in results:
+                        results[name] = 1
+                    else:
+                        results[name] += 1
             
     return results
