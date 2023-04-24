@@ -1,4 +1,8 @@
-from pydantic import BaseModel, Field 
+"""
+This file contains the data models for the NVD API and the Nmap XML output format.
+"""
+
+from pydantic import BaseModel, Field, validator
 from datetime import datetime
 from typing import List, Optional
 

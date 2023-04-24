@@ -2,9 +2,9 @@ import requests
 from datamodels import NVDResponse
 import pandas as pd
 import io
-import json
-import urllib
 from datetime import datetime
+from nmap_parser import NmapScan
+import logging
 
 # Query NVD for given CVE ID
 def query_cve(cveID: str) -> NVDResponse:
@@ -102,3 +102,19 @@ def query_crt_sh(domain: str) -> dict:
                         results[name] += 1
             
     return results
+
+def load_nmap_scan(file: str) -> NmapScan:
+    """Load Nmap scan from XML file
+
+    Args:
+        file (str): File to load
+
+    Returns:
+        NmapScan: Results of the query
+    """    
+    try:
+        scan = NmapScan(file)
+        return scan
+    except Exception as e:
+        logging.error(e)
+        return None
