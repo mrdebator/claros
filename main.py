@@ -1,5 +1,5 @@
 import argparse
-import collector
+import collecter
 
 if __name__ == "__main__":
     print("Welcome to GraphIt!")
@@ -24,18 +24,18 @@ if __name__ == "__main__":
         exit(1)
 
     if cveID:
-        print(collector.query_cve(cveID))
-        print(collector.query_exploit_db(cveID))
+        print(collecter.query_cve(cveID))
+        print(collecter.query_exploit_db(cveID))
     if keyword:
-        response = collector.query_keyword(keyword)
+        response = collecter.query_keyword(keyword)
         print(response)
         for i in range(response.total_results):
-            exploit_data = collector.query_exploit_db(response.vulnerabilities[i].data.id)
+            exploit_data = collecter.query_exploit_db(response.vulnerabilities[i].data.id)
             if exploit_data != []:
                 print(exploit_data)
     if domain: 
-        print(collector.query_crt_sh(domain))
+        print(collecter.query_crt_sh(domain))
     if nmap_file:
-        testObj = collector.load_nmap_scan(nmap_file)
+        testObj = collecter.load_nmap_scan(nmap_file)
         print(testObj)
         print(testObj.hosts[0].ip)

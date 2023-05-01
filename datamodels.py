@@ -22,7 +22,7 @@ class NVDVulnerabilityDescription(BaseModel):
 class NVDWeakness(BaseModel):
     source: str = Field(..., alias="source")
     type: str = Field(..., alias="type")
-    description: List[NVDVulnerabilityDescription] = Field(..., alias="description")
+    descriptions: List[NVDVulnerabilityDescription] = Field(..., alias="description")
 
 class NVDReference(BaseModel):
     url: str = Field(..., alias="url")
