@@ -14,9 +14,9 @@ class NmapPort:
 
 class NmapHost:
     def __init__(self, ip: str, hostname: str, ports: list[NmapPort]):
-        self.ip = ""
+        # self.ip = ip
         self.hostname = hostname
-        self.ports = list[NmapPort]
+        self.ports = ports
 
         if self.is_valid_ip(ip):
             self.ip = ip
@@ -31,7 +31,7 @@ class NmapHost:
 class NmapScan:
     def __init__(self, filename: str):
         self.filename = filename
-        self.hosts = []
+        self.hosts: list[NmapHost] = []
         try:
             tree = ET.parse(filename)
             root = tree.getroot()

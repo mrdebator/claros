@@ -1,2 +1,4 @@
 .vscode/
 __pycache__/
+*.rdf
+test_data/

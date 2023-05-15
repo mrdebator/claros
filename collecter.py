@@ -39,19 +39,20 @@ def query_keyword(keyword: str) -> NVDResponse:
 
     Returns:
         NVDResponse: Results of the query
-    """    
-    # Run query
-    baseURL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
-    keywordFilter = "?keywordSearch="
-    url = baseURL + keywordFilter + keyword
-    print("DEBUG: Querying: " + url)
-    response = requests.get(url)
+    """   
+    if keyword != "":
+        # Run query
+        baseURL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
+        keywordFilter = "?keywordSearch="
+        url = baseURL + keywordFilter + keyword
+        print("DEBUG: Querying: " + url)
+        response = requests.get(url)
 
-    # Parse response
-    if response.status_code == 200:
-        data = NVDResponse.parse_raw(response.text)
-        if data.total_results > 0:
-            return data
+        # Parse response
+        if response.status_code == 200:
+            data = NVDResponse.parse_raw(response.text)
+            if data.total_results > 0:
+                return data
     
     return NVDResponse(resultsPerPage=0, startIndex=0, totalResults=0, format='', version='', timestamp=datetime.now(), vulnerabilities=[])
 

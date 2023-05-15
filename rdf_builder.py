@@ -3,6 +3,7 @@ import logging
 from rdflib import *
 from datamodels import NVDVulnerability, NVDVulnerabilityWrapper, NVDWeakness
 from nmap_parser import NmapHost, NmapPort
+from collecter import query_exploit_db, query_keyword
 
 # Relations
 
@@ -32,10 +33,12 @@ class RDFBuilder:
         if filepath != '':
             try: 
                 self.load_ontology(filepath)
+                self.create_ontology_properties(self.graph)
             except Exception as e:
                 logging.error(e)
                 logging.error("Could not load ontology. Creating new ontology.")
-                self.create_ontology(namespace="http://example.org/test#")
+                self.namespace = "http://example.org/test#"
+                self.create_ontology()
                 self.create_ontology_properties(self.graph)
         else:
             self.namespace = "http://example.org/test#"
@@ -44,10 +47,10 @@ class RDFBuilder:
 
     def load_ontology(self, filepath: str = ''):
         if os.path.isfile(filepath):
-            try:
+            try: 
                 self.graph = Graph()
                 self.graph.parse(filepath)
-                self.namespace = self.get_namespace(self.graph)
+                self.get_namespace(self.graph)
             except Exception as e:
                 logging.error(e)
                 logging.error("ERROR: Unable to parse ontology file.")
@@ -71,7 +74,7 @@ class RDFBuilder:
             logging.error("ERROR: No ontology provided.")
             return None
         for ns_prefix, namespace in graph.namespaces():
-            if not ns_prefix:
+            if ns_prefix == "ns":
                 self.namespace = namespace
 
     def create_ontology_properties(self, graph: Graph) -> bool:
@@ -247,7 +250,7 @@ class RDFBuilder:
             ns = self.namespace
             graph = self.graph
             serviceName = service.service + service.port
-            serviceName = serviceName.replace(' ', '_')
+            serviceName = serviceName.replace(' ', '-')
             serviceNode = URIRef(ns + serviceName)
 
             # Check if URIRef already exists
@@ -256,7 +259,10 @@ class RDFBuilder:
                 graph.add((serviceNode, DCTERMS.title, Literal(serviceName)))
             
             for vuln in vulnerabilitiesList:
-                cveNode = self.insert_cve_into_ontology(vuln= vuln.data)
+                exploitList = query_exploit_db(vuln.data.id)
+                if len(exploitList) > 0:
+                    print("DEBUG: Found " + str(len(exploitList)) + " exploits for " + vuln.data.id)
+                cveNode = self.insert_cve_into_ontology(vuln=vuln.data, exploits=exploitList)
                 if cveNode != "":
                     graph.add((serviceNode, self.hasVulnerability, cveNode))
             
@@ -267,11 +273,13 @@ class RDFBuilder:
             logging.error("ERROR: Unable to insert CVE into ontology.")
             return ""
         
-    def insert_cve_into_ontology(self, vuln: NVDVulnerability) -> URIRef:
+    def insert_cve_into_ontology(self, vuln: NVDVulnerability, exploits: list = []) -> URIRef:
         try:
             ns = self.namespace
+            print("DEBUG: ns: " + str(ns))
             graph = self.graph
             cveNode = URIRef(ns + vuln.id)
+            print("DEBUG: cveNode: " + str(cveNode))
 
             # Check if URIRef already exists
             if not (cveNode, None, None) in graph:
@@ -301,10 +309,17 @@ class RDFBuilder:
                     graph.add((cveNode, self.hasIntegrityImpact, Literal(data.integrity_impact)))
                     graph.add((cveNode, self.hasAvailabilityImpact, Literal(data.availability_impact)))
 
+                # Add CWEs
                 for weakness in vuln.weaknesses:
                     cweNode = self.insert_cwe_into_ontology(weakness)
                     if cweNode != "":
                         graph.add((cveNode, self.hasWeakness, cweNode))
+                
+                # Add exploits
+                for exploit in exploits:
+                    exploitNode = self.insert_exploit_into_ontology(exploit)
+                    if exploitNode != "":
+                        graph.add((cveNode, self.hasExploit, exploitNode))
 
             return cveNode
             
@@ -313,6 +328,29 @@ class RDFBuilder:
             logging.error("ERROR: Unable to insert CVE into ontology.")
             return ""
     
+    def insert_exploit_into_ontology(self, exploit: dict) -> URIRef:
+        try:
+            ns = self.namespace
+            graph = self.graph
+
+            exploitNode = URIRef(ns + str(exploit['id']))
+            if not (exploitNode, None, None) in graph:
+                graph.add((exploitNode, RDF.type, self.Exploit))
+                graph.add((exploitNode, DCTERMS.title, Literal(exploit['id'])))
+
+                # Add properties
+                graph.add((exploitNode, self.hasFile, Literal(exploit['file'])))
+                graph.add((exploitNode, DCTERMS.description, Literal(exploit['description'])))
+                graph.add((exploitNode, self.affectsPlatform, Literal(exploit['platform'])))
+                graph.add((exploitNode, self.isType, Literal(exploit['type'])))
+
+            return exploitNode 
+
+        except Exception as e:
+            logging.error(e)
+            logging.error("ERROR: Unable to insert Exploit into ontology.")
+            return ""
+
     def insert_cwe_into_ontology(self, weakness: NVDWeakness) -> URIRef:
         try:
             ns = self.namespace
@@ -344,41 +382,45 @@ class RDFBuilder:
             return ""
 
     def insert_domain_into_ontology(self, domain: str, occurrences: int = 1) -> URIRef:
-        try:
-            ns = self.namespace
-            graph = self.graph
+        if domain != "":
+            try:
+                ns = self.namespace
+                graph = self.graph
+                
+                domainNode = URIRef(ns + domain)
+                if not (domainNode, None, None) in graph: 
+                    graph.add((domainNode, RDF.type, self.Domain))
+                    graph.add((domainNode, DCTERMS.title, Literal(domain)))
+                    graph.add((domainNode, self.hasOccurrences, Literal(occurrences)))
+                return domainNode
             
-            domainNode = URIRef(ns + domain)
-            if not (domainNode, None, None) in graph: 
-                graph.add((domainNode, RDF.type, self.Domain))
-                graph.add((domainNode, DCTERMS.title, Literal(domain)))
-                graph.add((domainNode, self.hasOccurrences, Literal(occurrences)))
-            return domainNode
+            except Exception as e:
+                logging.error(e)
+                logging.error("ERROR: Unable to insert Domain into ontology.")
         
-        except Exception as e:
-            logging.error(e)
-            logging.error("ERROR: Unable to insert Domain into ontology.")
-            return ""
+        return ""
 
 
-    def insert_ip_into_ontology(self, host: NmapHost,) -> URIRef:
+    def insert_ip_into_ontology(self, host: NmapHost) -> URIRef:
         try:
             ns = self.namespace
             graph = self.graph
             
+            print("DEBUG: IP Address =", host.ip)
             ipNode = URIRef(ns + host.ip)
             if not (ipNode, None, None) in graph:
                 graph.add((ipNode, RDF.type, self.IP))
                 graph.add((ipNode, DCTERMS.title, Literal(host.ip)))
                 # add services
                 for port in host.ports:
-                    serviceNode = self.insert_service_into_ontology(port)
+                    vulnerabilities = query_keyword(port.service + " " + port.version)
+                    serviceNode = self.insert_service_into_ontology(port, vulnerabilities.vulnerabilities)
                     if serviceNode != "":
                         graph.add((ipNode, self.hasService, serviceNode))
                 # add domains
                 domainNode = self.insert_domain_into_ontology(domain=host.hostname)
                 if domainNode != "":
-                    graph.add(ipNode, self.hasDomainName, domainNode)
+                    graph.add((ipNode, self.hasDomainName, domainNode))
             return ipNode
             
         except Exception as e:
@@ -394,13 +436,13 @@ class RDFBuilder:
 # print(insert_cve_into_ontology(response.vulnerabilities[0].data, g))
 # g.serialize(destination='test.rdf', format='xml')
 
-import collecter
-response = collecter.query_cve("CVE-2019-2019")
-b = RDFBuilder()
-print(len(response.vulnerabilities[0].data.metrics.cvss_metric_v3))
-# print(response.vulnerabilities[0].data.weaknesses)
-print(b.insert_cve_into_ontology(response.vulnerabilities[0].data))
-b.graph.serialize(destination='test2.rdf', format='xml')
+# import collecter
+# response = collecter.query_cve("CVE-2019-2019")
+# b = RDFBuilder()
+# print(len(response.vulnerabilities[0].data.metrics.cvss_metric_v3))
+# # print(response.vulnerabilities[0].data.weaknesses)
+# print(b.insert_cve_into_ontology(response.vulnerabilities[0].data))
+# b.graph.serialize(destination='test2.rdf', format='xml')
 
 
 # # Create new namespace
