@@ -66,7 +66,7 @@ class CVSSMetricV2(CVSSMetricBase):
     obtain_all_privilege: bool = Field(..., alias="obtainAllPrivilege")
     obtain_user_privilege: bool = Field(..., alias="obtainUserPrivilege")
     obtain_other_privilege: bool = Field(..., alias="obtainOtherPrivilege")
-    user_interaction_required: bool = Field(..., alias="userInteractionRequired")
+    user_interaction_required: bool = Field(False, alias="userInteractionRequired")
 
 
 class NVDMetrics(BaseModel):

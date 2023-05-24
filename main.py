@@ -53,9 +53,11 @@ if __name__ == "__main__":
             builder.insert_cve_into_ontology(vuln= vulnerability.data, exploits= exploit_list)
 
     if domain: 
+        originalDomainRef = builder.insert_domain_into_ontology(domain)
         response = collecter.query_crt_sh(domain)
         for i, (key, value) in enumerate(response.items()):
-            builder.insert_domain_into_ontology(key, value)
+            DomainRef = builder.insert_domain_into_ontology(key, value)
+            builder.link_related_domains(originalDomainRef, DomainRef)
 
     if nmap_file:
         nmap_scan = collecter.load_nmap_scan(nmap_file)

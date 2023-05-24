@@ -96,6 +96,12 @@ class RDFBuilder:
             graph.add((self.hasOccurrences, RDFS.domain, self.Domain))
             graph.add((self.hasOccurrences, RDFS.range, RDFS.Literal))
 
+            # Link to other domains
+            self.isRelatedTo = URIRef(self.namespace + "isRelatedTo")
+            graph.add((self.isRelatedTo, RDF.type, RDF.Property))
+            graph.add((self.isRelatedTo, RDFS.domain, self.Domain))
+            graph.add((self.isRelatedTo, RDFS.range, self.Domain))
+
             # CWE Properties
             self.CWE = URIRef(self.namespace + "CWE")
             graph.add((self.CWE, RDF.type, RDFS.Class))
@@ -333,10 +339,10 @@ class RDFBuilder:
             ns = self.namespace
             graph = self.graph
 
-            exploitNode = URIRef(ns + str(exploit['id']))
+            exploitNode = URIRef(ns + "EDB-ID-" + str(exploit['id']))
             if not (exploitNode, None, None) in graph:
                 graph.add((exploitNode, RDF.type, self.Exploit))
-                graph.add((exploitNode, DCTERMS.title, Literal(exploit['id'])))
+                graph.add((exploitNode, DCTERMS.title, Literal("EDB-ID-" + str(exploit['id']))))
 
                 # Add properties
                 graph.add((exploitNode, self.hasFile, Literal(exploit['file'])))
@@ -400,6 +406,15 @@ class RDFBuilder:
         
         return ""
 
+    def link_related_domains(self, domain1: URIRef, domain2: URIRef) -> bool:
+        try:
+            graph = self.graph
+            graph.add((domain1, self.isRelatedTo, domain2))
+            return True
+        except Exception as e:
+            logging.error(e)
+            logging.error("ERROR: Unable to link related domains.")
+            return False
 
     def insert_ip_into_ontology(self, host: NmapHost) -> URIRef:
         try:
