@@ -54,6 +54,7 @@ if __name__ == "__main__":
 
     if domain: 
         originalDomainRef = builder.insert_domain_into_ontology(domain)
+        print("[+] Querying Certificate Transparency Logs for", domain)
         response = collecter.query_crt_sh(domain)
         for i, (key, value) in enumerate(response.items()):
             DomainRef = builder.insert_domain_into_ontology(key, value)
@@ -71,3 +72,4 @@ if __name__ == "__main__":
             
     # Save RDF graph
     builder.graph.serialize(destination=ontology_file, format='xml')
+    print("[+] Successfully saved Ontology to", ontology_file)
