@@ -2,3 +2,4 @@
 __pycache__/
 *.rdf
 test_data/
+.DS_Store
