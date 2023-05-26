@@ -62,7 +62,7 @@ if __name__ == "__main__":
 
     if nmap_file:
         nmap_scan = collecter.load_nmap_scan(nmap_file)
-        print("DEBUG:", nmap_scan)
+        print("[+] Parsing NMap Scan:", nmap_file)
         for host in nmap_scan.hosts:
             builder.insert_ip_into_ontology(host)
             print("DEBUG:", type(host))
