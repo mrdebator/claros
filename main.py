@@ -65,7 +65,7 @@ if __name__ == "__main__":
         print("[+] Parsing NMap Scan:", nmap_file)
         for host in nmap_scan.hosts:
             builder.insert_ip_into_ontology(host)
-            print("DEBUG:", type(host))
+            # print("DEBUG:", type(host))
             for port in host.ports:
                 vulnerabilities = collecter.query_keyword(port.service + " " + port.version)
                 builder.insert_service_into_ontology(port, vulnerabilities.vulnerabilities)
